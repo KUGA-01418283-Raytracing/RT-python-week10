@@ -117,9 +117,7 @@ class Vec3:
 
 class ONB():
     def __init__(self) -> None:
-        self.axis[0] = Vec3()
-        self.axis[1] = Vec3()
-        self.axis[2] = Vec3()
+        self.axis = [Vec3(), Vec3(), Vec3()]
 
     def u(self):
         return self.axis[0]

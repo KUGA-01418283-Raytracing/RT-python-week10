@@ -22,6 +22,9 @@ class Camera:
 
         self.one_over_sqrt_spp = 1.0/math.sqrt(self.samples_per_pixel)
 
+        self.defocus_disk_u = 0.0
+        self.defocus_disk_v = 0.0
+
         self.init_camera()
         pass
 
@@ -37,7 +40,7 @@ class Camera:
         self.set_Lens(fDefocusAngle, fFocusDist)
 
         self.img_height = self.compute_img_height()
-        # self.focal_length = (self.look_from - self.look_at).len()
+
         self.center = self.look_from
 
         h = math.tan(math.radians(self.vertical_fov)/2.0)
@@ -48,16 +51,20 @@ class Camera:
         self.camera_frame_u = rtu.Vec3.unit_vector(rtu.Vec3.cross_product(self.vec_up, self.camera_frame_w))
         self.camera_frame_v = rtu.Vec3.cross_product(self.camera_frame_w, self.camera_frame_u)
 
-        # self.viewport_u = rtu.Vec3(self.viewport_width, 0, 0)
-        # self.viewport_v = rtu.Vec3(0, -self.viewport_height, 0)
         self.viewport_u = self.camera_frame_u*self.viewport_width
         self.viewport_v = -self.camera_frame_v*self.viewport_height
         self.pixel_du = self.viewport_u / self.img_width
         self.pixel_dv = self.viewport_v / self.img_height
-        # self.viewport_upper_left = self.center - rtu.Vec3(0, 0, self.focal_length) - self.viewport_u/2 - self.viewport_v/2
+
         self.viewport_upper_left = self.center - (self.camera_frame_w*self.Lens.get_focus_dist()) - self.viewport_u/2 - self.viewport_v/2
         self.pixel00_location = self.viewport_upper_left + (self.pixel_du+self.pixel_dv)*0.5
         self.film = np.zeros((self.img_height, self.img_width, self.img_spectrum))
+
+        # defocus effect
+        defocus_radius = self.Lens.get_focus_dist() * math.tan(math.radians(self.Lens.get_defocus_angle()/2.0))
+        self.defocus_disk_u = self.camera_frame_u * defocus_radius
+        self.defocus_disk_v = self.camera_frame_v * defocus_radius
+
 
     # call right before init_camera()
     def set_Lens(self, fDefocusAngle, fFocusDist):
@@ -90,16 +97,19 @@ class Camera:
         pixel_sample = pixel_center + self.random_pixel_in_square(self.pixel_du, self.pixel_dv)
 
         ray_origin = self.center
+        if self.Lens.get_defocus_angle() > 0.0:
+            ray_origin = self.defocus_disk_sample()
         ray_direction = pixel_sample - ray_origin
 
         return rtr.Ray(ray_origin, ray_direction)
     
     def get_jittered_ray(self, i, j, s_i, s_j):
-
         pixel_center = self.pixel00_location + (self.pixel_du*i) + (self.pixel_dv*j)
-        pixel_sample = pixel_center + self.pixel_sample_square(s_i, s_j)
+        pixel_sample = pixel_center + self.pixel_sample_square(self.pixel_du, self.pixel_dv, s_i, s_j)
 
         ray_origin = self.center
+        if self.Lens.get_defocus_angle() > 0.0:
+            ray_origin = self.defocus_disk_sample()
         ray_direction = pixel_sample - ray_origin
 
         return rtr.Ray(ray_origin, ray_direction)
@@ -109,10 +119,15 @@ class Camera:
         py = -0.5 + rtu.random_double()
         return (vDu*px) + (vDv*py)
 
-    def pixel_sample_square(self, s_i, s_j):
+    def pixel_sample_square(self, vDu, vDv, s_i, s_j):
         px = -0.5 + self.one_over_sqrt_spp * (s_i + rtu.random_double())
         py = -0.5 + self.one_over_sqrt_spp * (s_j + rtu.random_double())
-        return (self.pixel_du * px) + (self.pixel_dv * py)
+        return (vDu * px) + (vDv * py)
+
+    def defocus_disk_sample(self):
+        p = rtu.Vec3.random_vec3_in_unit_disk()
+        return self.center + (self.defocus_disk_u*p.x()) + (self.defocus_disk_v*p.y())
+
 
 
 class Lens():

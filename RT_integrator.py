@@ -7,8 +7,9 @@ import RT_material as rtm
 import math
 
 class Integrator():
-    def __init__(self, bDlight=True) -> None:
+    def __init__(self, bDlight=True, bSkyBG=False) -> None:
         self.bool_direct_lighting = bDlight
+        self.bool_sky_background = bSkyBG
         pass
 
     def compute_scattering(self, rGen_ray, scene, maxDepth):
@@ -51,6 +52,7 @@ class Integrator():
             # Le*attennuation_color upto the point before reflection models otherwise it is not correct.
             return Le + ( self.compute_scattering(rtr.Ray(hinfo.getP(), sinfo.scattered_ray.getDirection()), scene, maxDepth-1) * sinfo.attenuation_color )
 
-        # return scene.get_sky_background_color(rGen_ray)
+        if self.bool_sky_background:
+            return scene.get_sky_background_color(rGen_ray)
         return scene.getBackgroundColor()
 
