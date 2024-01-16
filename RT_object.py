@@ -15,15 +15,33 @@ class Sphere(Object):
         self.center = vCenter
         self.radius = fRadius
         self.material = mMat
+        # additional parameters for motion blur
+        self.moving_center = None       # where to the sphere moves to
+        self.is_moving = False          # is it moving ?
+        self.moving_dir = None          # moving direction
 
     def add_material(self, mMat):
         self.material = mMat
+
+    def add_moving(self, vCenter):      # set an ability to move to the sphere
+        self.moving_center = vCenter
+        self.is_moving = True
+        self.moving_dir = self.moving_center - self.center
+
+    def move_sphere(self, fTime):       # move the sphere by time parameter
+        return self.center + self.moving_dir*fTime
 
     def printInfo(self):
         self.center.printout()        
     
     def intersect(self, rRay, cInterval):        
-        oc = rRay.getOrigin() - self.center
+
+        # check if the sphere is moving then move center of the sphere.
+        sphere_center = self.center
+        if self.is_moving:
+            sphere_center = self.move_sphere(rRay.getTime())
+
+        oc = rRay.getOrigin() - sphere_center
         a = rRay.getDirection().len_squared()
         half_b = rtu.Vec3.dot_product(oc, rRay.getDirection())
         c = oc.len_squared() - self.radius*self.radius
@@ -41,7 +59,7 @@ class Sphere(Object):
             
         hit_t = root
         hit_point = rRay.at(root)
-        hit_normal = (hit_point - self.center) / self.radius
+        hit_normal = (hit_point - sphere_center) / self.radius
         hinfo = rtu.Hitinfo(hit_point, hit_normal, hit_t, self.material)
         hinfo.set_face_normal(rRay, hit_normal)
 

@@ -20,3 +20,5 @@ Note that to submit the rendered results, please use the following parameters.
 - aspect ratio = 16:9.
 
 
+
+

@@ -34,30 +34,6 @@ class Renderer():
                 renderbar.update(k)
                 k = k+1
 
-    def render_test(self):
-        # gather lights to the light list
-        self.scene.find_lights()
-        renderbar = RT_pbar.start_animated_marker(self.camera.img_height*self.camera.img_width)
-        k = 0
-                
-        sqrt_spp = int(math.sqrt(self.camera.samples_per_pixel))
-                
-        for j in range(self.camera.img_height):
-            for i in range(self.camera.img_width):
-
-                pixel_color = rtu.Color(0,0,0)
-                # shoot multiple rays at random locations inside the pixel
-                for s_j in range(sqrt_spp):
-                    for s_i in range(sqrt_spp):
-
-                        generated_ray = self.camera.get_jittered_ray(i, j, s_i, s_j)
-                        pixel_color = pixel_color + self.integrator.compute_scattering(generated_ray, self.scene, self.camera.max_depth)
-
-                self.camera.write_to_film(i, j, pixel_color)
-                renderbar.update(k)
-                k = k+1
-
-
     def render_jittered(self):
         # gather lights to the light list
         self.scene.find_lights()

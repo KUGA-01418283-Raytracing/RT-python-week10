@@ -49,7 +49,7 @@ class Lambertian(Material):
         uvw.build_from_w(hHinfo.getNormal())
 
         scattered_direction = uvw.local(rtu.Vec3.random_cosine_hemisphere_on_z())
-        scattered_ray = rtr.Ray(hHinfo.getP(), scattered_direction)
+        scattered_ray = rtr.Ray(hHinfo.getP(), scattered_direction, rRayIn.getTime())
         attenuation_color = self.BRDF(rRayIn, scattered_ray, hHinfo)
         return rtu.Scatterinfo(scattered_ray, attenuation_color)
 
@@ -66,7 +66,7 @@ class Mirror(Material):
 
     def scattering(self, rRayIn, hHinfo):
         # generate a reflected ray
-        reflected_ray = rtr.Ray(hHinfo.getP(), reflect(rRayIn.getDirection(), hHinfo.getNormal()))
+        reflected_ray = rtr.Ray(hHinfo.getP(), reflect(rRayIn.getDirection(), hHinfo.getNormal()), rRayIn.getTime())
 
         # get attenuation_color
         attenuation_color = self.BRDF(rRayIn, reflected_ray, hHinfo)
@@ -94,7 +94,7 @@ class Dielectric(Material):
         # generate a refracted ray
         uv = rtu.Vec3.unit_vector(rRayIn.getDirection())
         refracted_dir = refract(uv, hHinfo.getNormal(), refract_ratio)
-        scattered_ray = rtr.Ray(hHinfo.getP(), refracted_dir)
+        scattered_ray = rtr.Ray(hHinfo.getP(), refracted_dir, rRayIn.getTime())
 
         attenuation_color = self.BRDF(rRayIn, scattered_ray, hHinfo)
         # return scattering info
@@ -118,7 +118,7 @@ class TextureColor(Material):
         uvw.build_from_w(hHinfo.getNormal())
         scattered_direction = uvw.local(rtu.Vec3.random_cosine_hemisphere_on_z())
 
-        scattered_ray = rtr.Ray(hHinfo.getP(), scattered_direction)
+        scattered_ray = rtr.Ray(hHinfo.getP(), scattered_direction, rRayIn.getTime())
         attenuation_color = self.BRDF(rRayIn, scattered_ray, hHinfo)
 
         return rtu.Scatterinfo(scattered_ray, attenuation_color)
@@ -140,7 +140,7 @@ class Metal(Material):
     def scattering(self, rRayIn, hHinfo):
         # compute scattered ray based on the roughtness parameter
         reflected_direction = reflect(rtu.Vec3.unit_vector(rRayIn.getDirection()), hHinfo.getNormal()) + rtu.Vec3.random_vec3_unit()*self.roughness
-        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction)
+        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction, rRayIn.getTime())
         attenuation_color = self.BRDF(rRayIn, reflected_ray, hHinfo)
 
         # check if the reflected direction is below the surface normal
@@ -168,7 +168,7 @@ class Phong(Material):
         uvw.build_from_w(hHinfo.getNormal())
 
         reflected_direction = uvw.local(rtu.Vec3.random_cosine_hemisphere_on_z())
-        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction)
+        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction, rRayIn.getTime())
         phong_color = self.BRDF(rRayIn, reflected_ray, hHinfo)
 
         return rtu.Scatterinfo(reflected_ray, phong_color)
@@ -200,7 +200,7 @@ class Blinn(Material):
         uvw.build_from_w(hHinfo.getNormal())
 
         reflected_direction = uvw.local(rtu.Vec3.random_cosine_hemisphere_on_z())
-        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction)
+        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction, rRayIn.getTime())
         blinn_color = self.BRDF(rRayIn, reflected_ray, hHinfo)
 
         return rtu.Scatterinfo(reflected_ray, blinn_color)
@@ -229,7 +229,7 @@ class CookTorrance(Material):
         uvw.build_from_w(hHinfo.getNormal())
 
         reflected_direction = uvw.local(rtu.Vec3.random_cosine_hemisphere_on_z())
-        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction)
+        reflected_ray = rtr.Ray(hHinfo.getP(), reflected_direction, rRayIn.getTime())
         ct_color = self.BRDF(rRayIn, reflected_ray, hHinfo)
 
         return rtu.Scatterinfo(reflected_ray, ct_color)
