@@ -13,12 +13,18 @@ The codes were rewritten and modified from https://raytracing.github.io/books/Ra
 
 **Class assignment**
 
+Do not forget to submit your codes when code implementation is needed.
+
 Note that to submit the rendered results, please use the following parameters.
 - at least 100 samples per pixel.
 - at least 5 max depth.
 - resolution width = 480p.
 - aspect ratio = 16:9.
 
-
-
+1. Implement DoF in 'get_jittered_ray()'. Render the output with 'renderDoF()'.
+2. Implement DoF by using an 'aperture' parameter instead of 'defocus_angle'. Do not forget to replace all 'defocus_angle' calls. Render the output with 'renderDoF()' using the following parameters and commands.
+- aperture = 1.0, focus_distance = 5.0.
+- renderer.render() --> submit your rendered result.
+- renderer.render_jittered() --> submit your rendered result.
+3. Implement Motion blur effect in 'get_jittered_ray()'. Render the output with 'renderMoving().
 

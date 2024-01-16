@@ -106,12 +106,9 @@ class Camera:
         pixel_sample = pixel_center + self.pixel_sample_square(self.pixel_du, self.pixel_dv, s_i, s_j) * 0.5
 
         ray_origin = self.center
-        if self.Lens.get_defocus_angle() > 1e-06:
-            ray_origin = self.defocus_disk_sample()
         ray_direction = pixel_sample - ray_origin
-        ray_time = rtu.random_double()              # an additional parameter for motion blur
 
-        return rtr.Ray(ray_origin, ray_direction, ray_time)
+        return rtr.Ray(ray_origin, ray_direction)
 
     def random_pixel_in_square(self, vDu, vDv):
         px = -0.5 + rtu.random_double()

@@ -8,7 +8,7 @@ import RT_integrator as rti
 import RT_light as rtl
 import RT_texture as rtt
 
-def renderBlinn():
+def renderDoF():
     main_camera = rtc.Camera()
     main_camera.aspect_ratio = 16.0/9.0
     main_camera.img_width = 320
@@ -40,14 +40,11 @@ def renderBlinn():
     world.add_object(rto.Sphere(rtu.Vec3(   0,   0.0,-1),  0.5, mat_blinn2))    # center
     world.add_object(rto.Sphere(rtu.Vec3( 1.0,   0.0,-1),  0.5, mat_blinn3))    # right
 
-    dlight = rtl.Diffuse_light(rtu.Color(0.9, 0.9, 0.9))
-    # world.add_object(rto.Sphere(rtu.Vec3(   0, 1.0, 0.0), 0.05, dlight))
-
     intg = rti.Integrator(bSkyBG=True)
 
     renderer = rtren.Renderer(main_camera, intg, world)
     renderer.render_jittered()
-    renderer.write_img2png('week10_jitter_da2_fs5_05.png')    
+    renderer.write_img2png('week10_jitter_DoF.png')    
 
 def renderMoving():
     main_camera = rtc.Camera()
@@ -84,19 +81,14 @@ def renderMoving():
     world.add_object(rto.Sphere(rtu.Vec3(   0,   0.0,-1),  0.5, mat_blinn2))    # center
     world.add_object(rto.Sphere(rtu.Vec3( 1.0,   0.0,-1),  0.5, mat_blinn3))    # right
 
-
-
-    dlight = rtl.Diffuse_light(rtu.Color(0.9, 0.9, 0.9))
-    # world.add_object(rto.Sphere(rtu.Vec3(   0, 1.0, 0.0), 0.05, dlight))
-
     intg = rti.Integrator(bSkyBG=True)
 
     renderer = rtren.Renderer(main_camera, intg, world)
-    renderer.render()
+    renderer.render_jittered()
     renderer.write_img2png('week10_moving_nojitter.png')    
 
 if __name__ == "__main__":
-    # renderBlinn()
+    # renderDoF()
     renderMoving()
 
 
