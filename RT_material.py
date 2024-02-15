@@ -218,11 +218,12 @@ class Blinn(Material):
 # Cook-Torrance BRDF model
 # fr = kd/pi + ks*(DFG/4(w_o.N * w_i.N))
 class CookTorrance(Material):
-    def __init__(self, cAlbedo, kd, ks) -> None:
+    def __init__(self, kd, ks, fAlpha, fIOR) -> None:
         super().__init__()
-        self.color_albedo = rtu.Color(cAlbedo.r(), cAlbedo.g(), cAlbedo.b())
         self.kd = kd
         self.ks = ks
+        self.alpha = fAlpha
+        self.ior = fIOR
 
     def scattering(self, rRayIn, hHinfo):
         uvw = rtu.ONB()
@@ -235,10 +236,44 @@ class CookTorrance(Material):
         return rtu.Scatterinfo(reflected_ray, ct_color)
 
     def BRDF(self, rView, rLight, hHinfo):
+        half_vector = rtu.Vec3.unit_vector(halfvector(-rView.getDirection(), rLight.getDirection()))
+        vN = hHinfo.getNormal()
+        V_dot_N = max(1e-08, rtu.Vec3.dot_product(-rView.getDirection(), vN))
+        L_dot_N = max(1e-08, rtu.Vec3.dot_product(rLight.getDirection(), vN))
+
+        dterm = self.Dterm_GGX(half_vector, vN, self.alpha)
+        gterm1 = self.Gterm(-rView.getDirection(), half_vector, vN, self.alpha)
+        gterm2 = self.Gterm(rLight.getDirection(), half_vector, vN, self.alpha)
+
+        cos_theta = min(rtu.Vec3.dot_product(rLight.getDirection(), vN), 1.0)
+        fterm = schlick(cos_theta, self.ior)
+
+        denom = 1/(4 * V_dot_N * L_dot_N)
         # calculate diffuse color
-        diff_color = None
-        spec_color = None
+        diff_color = self.kd/math.pi
+        spec_color = self.ks * dterm * gterm1 * gterm2 * fterm * denom
 
         return diff_color + spec_color
+
+    def chi_GGX(self, fVal):
+        if fVal>1e-08:
+            return 1.0
+        return 0.0
+    
+    def Dterm_GGX(self, vH, vN, fAlpha):
+        H_dot_N = max(1e-08, rtu.Vec3.dot_product(vH, vN))
+        alpha2 = fAlpha*fAlpha
+        H_dot_N2 = H_dot_N*H_dot_N
+        tan2 = ( 1-H_dot_N2 ) / H_dot_N2
+        denom = H_dot_N2 * (alpha2 + tan2)
+        return (self.chi_GGX(H_dot_N) * alpha2) / (math.pi * denom * denom)
+
+    def Gterm(self, vP, vH, vN, fAlpha):
+        v_dot_H = max(1e-08, rtu.Vec3.dot_product(vP, vH))
+        v_dot_N = max(1e-08, rtu.Vec3.dot_product(vP, vN))
+        chi = self.chi_GGX(v_dot_H / v_dot_N)
+        v_dot_H2 = v_dot_H * v_dot_H
+        tan2 = ( 1 - v_dot_H2 ) / v_dot_H2
+        return (chi * 2) / (1 + math.sqrt(1 + fAlpha*fAlpha*tan2))
     
 
